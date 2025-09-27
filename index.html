@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>معرض فيديوهات مع زر احتياطي</title>
+    <title>معرض فيديوهات متكامل وذكي</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter -->
@@ -124,6 +124,12 @@
             const cardWrapper = document.createElement('div');
             cardWrapper.className = 'video-card relative rounded-lg overflow-hidden shadow-lg group';
             
+            const link = document.createElement('a');
+            link.href = url;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.className = 'absolute inset-0 z-10';
+
             const video = document.createElement('video');
             video.className = 'video-thumbnail transition-opacity duration-500 opacity-0';
             const randomThumbnailTime = Math.floor(Math.random() * 59) + 1;
@@ -133,7 +139,7 @@
             video.preload = 'metadata';
 
             const feedbackContainer = document.createElement('div');
-            feedbackContainer.className = 'absolute inset-0 flex items-center justify-center p-2';
+            feedbackContainer.className = 'absolute inset-0 flex items-center justify-center';
             feedbackContainer.innerHTML = `<div class="spinner"></div>`;
             
             let playTimeout = null;
@@ -156,20 +162,12 @@
                 video.currentTime = randomThumbnailTime;
             };
 
+            // *** هذا هو الجزء الأهم للتعامل مع الأخطاء ***
             video.addEventListener('error', () => {
                 cardWrapper.style.aspectRatio = '16 / 9';
-                // --- التحسين الجديد: إضافة زر الفتح المباشر ---
-                const fallbackButton = `
-                    <div class="text-center">
-                        <p class="text-xs text-red-400 mb-2">فشل التحميل (المصدر يمنع العرض)</p>
-                        <a href="${url}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"
-                           class="inline-block bg-white text-black text-sm font-bold py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors duration-300">
-                           فتح الفيديو
-                        </a>
-                    </div>
-                `;
-                feedbackContainer.innerHTML = fallbackButton;
-                cardWrapper.classList.remove('group'); // إزالة تأثيرات التمرير
+                feedbackContainer.innerHTML = `<span class="text-xs text-red-400 text-center p-2">فشل التحميل (المصدر يمنع العرض)</span>`;
+                // نلغي الرابط القابل للنقر لأن الفيديو لا يعمل
+                link.remove(); 
             });
 
             video.addEventListener('loadedmetadata', () => {
@@ -179,12 +177,14 @@
                 feedbackContainer.style.display = 'none';
                 video.classList.remove('opacity-0');
 
+                // نضيف أحداث التمرير فقط إذا نجح تحميل الفيديو
                 cardWrapper.addEventListener('mouseenter', startPlaybackLoop);
                 cardWrapper.addEventListener('mouseleave', stopPlaybackLoop);
             });
 
             cardWrapper.appendChild(feedbackContainer);
             cardWrapper.appendChild(video);
+            cardWrapper.appendChild(link);
             
             return cardWrapper;
         }

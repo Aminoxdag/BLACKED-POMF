@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>معرض فيديوهات متكامل وذكي</title>
+    <title>Video Gallery</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Inter -->
@@ -36,6 +36,7 @@
             break-inside: avoid;
             margin-bottom: 1rem;
             background-color: #1C1C1C;
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         }
     </style>
 </head>
@@ -43,17 +44,16 @@
     <main class="min-h-screen w-full p-4 sm:p-6">
         
         <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-white">معرض الفيديوهات</h1>
-            <p id="status-message" class="text-gray-400 mt-2">جاري تحميل الفيديوهات من المصدر...</p>
+            <h1 class="text-3xl md:text-4xl font-bold text-white">Video Gallery</h1>
         </header>
 
         <div id="links-grid" class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4">
-            <!-- سيتم إضافة بطاقات الفيديو هنا -->
+            <!-- Video cards will be dynamically added here -->
         </div>
 
         <div id="load-more-container" class="text-center mt-8">
             <button id="load-more-btn" class="hidden bg-white text-black font-bold py-3 px-8 rounded-lg hover:bg-gray-300 transition-colors duration-300">
-                تحميل المزيد
+                Load More
             </button>
         </div>
     </main>
@@ -61,7 +61,6 @@
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         const linksGrid = document.getElementById('links-grid');
-        const statusMessage = document.getElementById('status-message');
         const loadMoreBtn = document.getElementById('load-more-btn');
 
         let allVideoUrls = [];
@@ -69,6 +68,15 @@
         const initialLoadSize = 10;
         const batchSize = 5;
         const fileUrl = 'https://raw.githubusercontent.com/Aminoxdag/My-links/refs/heads/main/pomfblackedfull.txt';
+
+        let activePreview = null;
+
+        document.body.addEventListener('click', (e) => {
+            if (activePreview && !activePreview.card.contains(e.target)) {
+                activePreview.stop();
+                activePreview = null;
+            }
+        });
 
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
@@ -81,27 +89,22 @@
         async function fetchAndInitialize() {
             try {
                 const response = await fetch(fileUrl);
-                if (!response.ok) throw new Error(`!فشل الاتصال بالشبكة: ${response.status}`);
+                if (!response.ok) throw new Error(`Network response was not ok: ${response.status}`);
                 
                 const text = await response.text();
                 const urls = text.split('\n').filter(url => url.trim() !== '');
                 
                 allVideoUrls = shuffleArray(urls);
 
-                if (allVideoUrls.length === 0) {
-                    statusMessage.textContent = 'لم يتم العثور على فيديوهات.';
-                    return;
+                if (allVideoUrls.length > 0) {
+                    loadMoreVideos(initialLoadSize);
                 }
-                
-                statusMessage.textContent = `تم العثور على ${allVideoUrls.length} فيديو.`;
-                loadMoreVideos(initialLoadSize);
 
                 if (currentIndex < allVideoUrls.length) {
                     loadMoreBtn.classList.remove('hidden');
                 }
             } catch (error) {
-                statusMessage.textContent = `فشل تحميل القائمة. ${error.message}`;
-                statusMessage.classList.add('text-red-500');
+                console.error("Failed to load video list:", error);
             }
         }
 
@@ -123,13 +126,8 @@
         function createLinkCard(url) {
             const cardWrapper = document.createElement('div');
             cardWrapper.className = 'video-card relative rounded-lg overflow-hidden shadow-lg group';
+            cardWrapper.style.cursor = 'pointer';
             
-            const link = document.createElement('a');
-            link.href = url;
-            link.target = '_blank';
-            link.rel = 'noopener noreferrer';
-            link.className = 'absolute inset-0 z-10';
-
             const video = document.createElement('video');
             video.className = 'video-thumbnail transition-opacity duration-500 opacity-0';
             const randomThumbnailTime = Math.floor(Math.random() * 59) + 1;
@@ -142,32 +140,10 @@
             feedbackContainer.className = 'absolute inset-0 flex items-center justify-center';
             feedbackContainer.innerHTML = `<div class="spinner"></div>`;
             
-            let playTimeout = null;
-
-            const startPlaybackLoop = () => {
-                if (video.readyState < 2 || video.duration <= 10) return;
-                const playRandomSegment = () => {
-                    const maxStartTime = Math.max(0, video.duration - 5);
-                    const startTime = Math.random() * maxStartTime;
-                    video.currentTime = startTime;
-                    video.play().catch(e => {});
-                    playTimeout = setTimeout(playRandomSegment, 5000);
-                };
-                playRandomSegment();
-            };
-            
-            const stopPlaybackLoop = () => {
-                clearTimeout(playTimeout);
-                video.pause();
-                video.currentTime = randomThumbnailTime;
-            };
-
-            // *** هذا هو الجزء الأهم للتعامل مع الأخطاء ***
             video.addEventListener('error', () => {
                 cardWrapper.style.aspectRatio = '16 / 9';
-                feedbackContainer.innerHTML = `<span class="text-xs text-red-400 text-center p-2">فشل التحميل (المصدر يمنع العرض)</span>`;
-                // نلغي الرابط القابل للنقر لأن الفيديو لا يعمل
-                link.remove(); 
+                feedbackContainer.innerHTML = `<span class="text-xs text-red-400 text-center p-2">Load Error</span>`;
+                cardWrapper.style.cursor = 'not-allowed';
             });
 
             video.addEventListener('loadedmetadata', () => {
@@ -176,15 +152,77 @@
                 }
                 feedbackContainer.style.display = 'none';
                 video.classList.remove('opacity-0');
+            });
+            
+            let pressTimer = null;
+            let longPressed = false;
 
-                // نضيف أحداث التمرير فقط إذا نجح تحميل الفيديو
-                cardWrapper.addEventListener('mouseenter', startPlaybackLoop);
-                cardWrapper.addEventListener('mouseleave', stopPlaybackLoop);
+            const startPress = (e) => {
+                 if (e.type === 'mousedown' && e.button !== 0) return;
+                 longPressed = false;
+                 pressTimer = setTimeout(() => {
+                    longPressed = true;
+                    e.stopPropagation();
+
+                    if (activePreview && activePreview.video !== video) {
+                        activePreview.stop();
+                    }
+
+                    if (activePreview && activePreview.video === video) {
+                        activePreview.stop();
+                        activePreview = null;
+                    } else {
+                        activePreview = {
+                            video: video,
+                            card: cardWrapper,
+                            stop: function() {
+                                this.video.pause();
+                                this.video.loop = false;
+                                this.video.muted = true;
+                                this.video.controls = false;
+                                this.video.style.pointerEvents = 'none';
+                                this.card.classList.remove('z-20', 'transform', 'scale-105');
+                                this.card.style.cursor = 'pointer';
+                                video.currentTime = randomThumbnailTime;
+                            }
+                        };
+                        video.loop = true;
+                        video.muted = false;
+                        video.controls = true;
+                        video.style.pointerEvents = 'auto';
+                        const startTime = Math.random() * Math.max(0, video.duration - 5);
+                        video.currentTime = startTime;
+                        video.play().catch(err => console.error("Preview play failed:", err));
+                        cardWrapper.classList.add('z-20', 'transform', 'scale-105');
+                        cardWrapper.style.cursor = 'default';
+                    }
+                 }, 500);
+            };
+            
+            const cancelPress = () => {
+                clearTimeout(pressTimer);
+            };
+
+            cardWrapper.addEventListener('mousedown', startPress);
+            cardWrapper.addEventListener('mouseup', cancelPress);
+            cardWrapper.addEventListener('mouseleave', cancelPress);
+            cardWrapper.addEventListener('touchstart', startPress, { passive: true });
+            cardWrapper.addEventListener('touchend', cancelPress);
+            cardWrapper.addEventListener('touchcancel', cancelPress);
+            
+            cardWrapper.addEventListener('click', (e) => {
+                if (longPressed) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+                if (cardWrapper.style.cursor === 'pointer') {
+                     window.open(url, '_blank', 'noopener,noreferrer');
+                }
             });
 
             cardWrapper.appendChild(feedbackContainer);
             cardWrapper.appendChild(video);
-            cardWrapper.appendChild(link);
             
             return cardWrapper;
         }
@@ -194,3 +232,4 @@
     </script>
 </body>
 </html>
+

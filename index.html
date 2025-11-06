@@ -1,371 +1,257 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>معرض فيديوهات ذكي ومتكامل</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #000000;
-        }
-        .video-thumbnail { width: 100%; height: 100%; object-fit: cover; }
-        video::-webkit-media-controls { display: none !important; }
-        video[controls]::-webkit-media-controls { display: flex !important; }
-        video { pointer-events: none; }
-        .spinner {
-            border: 4px solid rgba(255, 255, 255, 0.15);
-            border-left-color: #ffffff;
-            border-radius: 50%;
-            width: 40px; height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .video-card {
-            break-inside: avoid;
-            margin-bottom: 1.5rem;
-            background-color: #1C1C1C;
-            cursor: pointer;
-        }
-        /* تخصيص ستايل القائمة المنسدلة */
-        select {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='white' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: left 0.75rem center;
-            padding-left: 2rem; /* لإعطاء مساحة للأيقونة */
-        }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>معرض فيديوهات ذكي ومتكامل</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+        }
+        .video-thumbnail { width: 100%; height: 100%; object-fit: cover; }
+        video::-webkit-media-controls { display: none !important; }
+        video[controls]::-webkit-media-controls { display: flex !important; }
+        video { pointer-events: none; }
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.15);
+            border-left-color: #ffffff;
+            border-radius: 50%;
+            width: 40px; height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .video-card {
+            break-inside: avoid;
+            margin-bottom: 1.5rem;
+            background-color: #1C1C1C;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body class="antialiased">
-    <main class="min-h-screen w-full p-4 sm:p-6 lg:p-8">
-        <header class="text-center mb-8">
-            <h1 class="text-3xl md:text-4xl font-bold text-white">معرض الفيديوهات</h1>
-            <p id="status-message" class="text-gray-400 mt-2">جاري تحميل قائمة الفيديوهات...</p>
-            
-            <!-- أزرار الفلترة والخلط -->
-            <div id="controls-container" class="mt-6 flex flex-wrap justify-center gap-3 items-center hidden">
-                <select id="sort-select" class="bg-gray-800 text-white text-sm font-medium py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer">
-                    <option value="default" class="text-gray-300">الترتيب الافتراضي</option>
-                    <option value="duration-desc">المدة (من الأطول)</option>
-                    <option value="duration-asc">المدة (من الأقصر)</option>
-                    <option value="quality-desc">الجودة (من الأعلى)</option>
-                    <option value="quality-asc">الجودة (من الأقل)</option>
-                </select>
+    <main class="min-h-screen w-full p-4 sm:p-6 lg:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-white">معرض الفيديوهات</h1>
+            <p id="status-message" class="text-gray-400 mt-2">جاري تحميل قائمة الفيديوهات...</p>
+        </header>
+        <div id="links-grid" class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 sm:gap-6">
+            <!-- سيتم إضافة بطاقات الفيديو هنا -->
+        </div>
+        <div id="load-more-container" class="text-center mt-8">
+            <button id="load-more-btn" class="hidden bg-white text-black font-bold py-3 px-8 rounded-lg hover:bg-gray-300 transition-colors duration-300">
+                تحميل المزيد
+            </button>
+        </div>
+    </main>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- عناصر الواجهة ---
+        const linksGrid = document.getElementById('links-grid');
+        const statusMessage = document.getElementById('status-message');
+        const loadMoreBtn = document.getElementById('load-more-btn');
 
-                <button id="shuffle-btn" class="bg-blue-600 text-white text-sm font-bold py-2 px-5 rounded-lg hover:bg-blue-700 transition-colors duration-300 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-                        <path fill-rule="evenodd" d="M0 3.5A.5.5 0 0 1 .5 3H1c2.202 0 3.827 1.24 4.874 2.418.49.552.865 1.102 1.126 1.532.261.43.447.854.55 1.226l.042.148h.04l.048-.178.042-.148c.103-.372.29-.796.55-1.226.261-.43.636-.98 1.126-1.532C11.173 4.24 12.798 3 15 3h.5a.5.5 0 0 1 0 1H15c-1.852 0-3.178 1.053-4.126 2.082A9.624 9.624 0 0 0 9.796 7.7l.042.148h.04l.048-.178.042-.148c.103-.372.29-.796.55-1.226.261-.43.636-.98 1.126-1.532C13.173 3.053 14.498 2 16 2h-1.5a.5.5 0 0 1 0-1H16a.5.5 0 0 1 .5.5v1.5a.5.5 0 0 1-1 0V3.5a.5.5 0 0 1-.5-.5h-1c-1.852 0-3.178 1.053-4.126 2.082A9.624 9.624 0 0 0 9.796 6.7l-.042.148h-.04l-.048-.178-.042-.148c-.103-.372-.29-.796-.55-1.226-.261-.43-.636-.98-1.126-1.532C6.827 2.24 5.202 1 3 1H.5a.5.5 0 0 1-.5.5v1.5a.5.5 0 0 1-1 0V3.5Z"/>
-                        <path d="M0 12.5A.5.5 0 0 1 .5 12H1c1.852 0 3.178-1.053 4.126-2.082 1.018-1.099 1.9-2.51 2.46-4.074l.042-.148h.04l.048.178.042.148c.56 1.564 1.442 2.975 2.46 4.074C11.827 12.947 13.152 14 15 14h.5a.5.5 0 0 1 0 1H15c-2.202 0-3.827-1.24-4.874-2.418A10.595 10.595 0 0 1 9 9.05l-.042-.148h-.04l-.048.178-.042.148c-.56 1.564-1.442 2.975-2.46 4.074C5.173 14.76 3.798 16 1.5 16H0a.5.5 0 0 1-.5-.5v-1.5a.5.5 0 0 1 1 0v.5c1.852 0 3.178-1.053 4.126-2.082 1.018-1.099 1.9-2.51 2.46-4.074l.042-.148h.04l.048.178.042.148c.56 1.564 1.442 2.975 2.46 4.074C11.827 14.947 13.152 16 15 16h.5a.5.5 0 0 1 0-1H15c-1.852 0-3.178-1.053-4.126-2.082A9.624 9.624 0 0 0 9.796 9.3l-.042.148h-.04l-.048-.178-.042-.148c-.56-1.564-1.442-2.975-2.46-4.074C6.173 4.053 4.848 3 3 3H.5a.5.5 0 0 1 0-1H3c2.202 0 3.827 1.24 4.874 2.418.49.552.865 1.102 1.126 1.532.261.43.447.854.55 1.226l.042.148h.04l.048-.178.042-.148c.103-.372.29-.796.55-1.226.261-.43.636-.98 1.126-1.532C12.827 3.24 14.402 2 16 2h-1.5a.5.5 0 0 1 0-1H16a.5.5 0 0 1 .5.5v1.5a.5.5 0 0 1-1 0V3.5a.5.5 0 0 1-.5-.5h-1c-2.202 0-3.827 1.24-4.874 2.418A10.595 10.595 0 0 1 9 8.95l.042.148h.04l.048-.178.042-.148c.56-1.564 1.442 2.975 2.46-4.074C12.827 2.053 14.152 1 16 1h-1.5a.5.5 0 0 1 0-1H16a.5.5 0 0 1 .5.5v1.5a.5.5 0 0 1-1 0V.5a.5.5 0 0 1 .5-.5h-1.5a.5.5 0 0 1 0 1H16a.5.5 0 0 1-.5.5h-1c-2.202 0-3.827 1.24-4.874 2.418A10.595 10.595 0 0 1 9 6.95l-.042-.148h-.04l-.048.178-.042.148c-.103.372-.29.796-.55 1.226-.261.43-.636.98-1.126 1.532C6.173 10.76 4.798 12 2.5 12H0a.5.5 0 0 1-.5-.5v-1.5a.5.5 0 0 1 1 0v.5Z"/>
-                    </svg>
-                    خلط عشوائي
-                </button>
-            </div>
-        </header>
+        // --- إدارة الحالة ---
+        let allVideoUrls = [];
+        let currentIndex = 0;
+        const initialLoadSize = 10;
+        const batchSize = 5;
+        const fileUrl = 'https://raw.githubusercontent.com/Aminoxdag/My-links/refs/heads/main/pomfblackedfull.txt';
 
-        <div id="links-grid" class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 sm:gap-6">
-            <!-- سيتم إضافة بطاقات الفيديو هنا -->
-        </div>
+        // --- أيقونات SVG ---
+        const volumeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M11.536 14.01A8.473 8.473 0 0 0 14.026 8a8.473 8.473 0 0 0-2.49-6.01l-.708.707A7.476 7.476 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303l.708.707z"/><path d="M10.121 12.59A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.59l-.707.707A5.482 5.482 0 0 1 11.025 8a5.482 5.482 0 0 1-1.61 3.88l.708.708z"/><path d="M8.707 11.182A4.486 4.486 0 0 0 10.025 8a4.486 4.486 0 0 0-1.318-3.182l-.707.707A3.486 3.486 0 0 1 9.025 8a3.486 3.486 0 0 1-.98 2.475l.707.707zM6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06z"/></svg>`;
+        const mutedIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zm7.137 2.096a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0z"/></svg>`;
+        const copyIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/></svg>`;
+        const checkIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>`;
 
-        <div id="load-more-container" class="text-center mt-8">
-            <button id="load-more-btn" class="hidden bg-white text-black font-bold py-3 px-8 rounded-lg hover:bg-gray-300 transition-colors duration-300">
-                تحميل المزيد
-            </button>
-        </div>
-    </main>
+        // --- دوال مساعدة ---
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
 
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- عناصر الواجهة ---
-        const linksGrid = document.getElementById('links-grid');
-        const statusMessage = document.getElementById('status-message');
-        const loadMoreBtn = document.getElementById('load-more-btn');
-        const controlsContainer = document.getElementById('controls-container');
-        const sortSelect = document.getElementById('sort-select');
-        const shuffleBtn = document.getElementById('shuffle-btn');
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return '0:00';
+            const flooredSeconds = Math.floor(seconds);
+            const min = Math.floor(flooredSeconds / 60);
+            const sec = flooredSeconds % 60;
+            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
+        }
 
-        // --- إدارة الحالة ---
-        let allVideoUrls = [];
-        let currentIndex = 0;
-        const initialLoadSize = 10;
-        const batchSize = 5;
-        const fileUrl = 'https://raw.githubusercontent.com/Aminoxdag/My-links/refs/heads/main/pomfblackedfull.txt';
+        // --- جلب البيانات والتهيئة ---
+        async function fetchAndInitialize() {
+            try {
+                const response = await fetch(fileUrl);
+                if (!response.ok) throw new Error(`فشل الاتصال بالشبكة: ${response.status}`);
+                const text = await response.text();
+                const urls = text.split('\n').filter(url => url.trim() !== '' && (url.includes('.mp4') || url.includes('.webm')));
+                
+                allVideoUrls = shuffleArray(urls);
 
-        // --- أيقونات SVG ---
-        const volumeIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M11.536 14.01A8.473 8.473 0 0 0 14.026 8a8.473 8.473 0 0 0-2.49-6.01l-.708.707A7.476 7.476 0 0 1 13.025 8c0 2.071-.84 3.946-2.197 5.303l.708.707z"/><path d="M10.121 12.59A6.48 6.48 0 0 0 12.025 8a6.48 6.48 0 0 0-1.904-4.59l-.707.707A5.482 5.482 0 0 1 11.025 8a5.482 5.482 0 0 1-1.61 3.88l.708.708z"/><path d="M8.707 11.182A4.486 4.486 0 0 0 10.025 8a4.486 4.486 0 0 0-1.318-3.182l-.707.707A3.486 3.486 0 0 1 9.025 8a3.486 3.486 0 0 1-.98 2.475l.707.707zM6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06z"/></svg>`;
-        const mutedIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 16 16"><path d="M6.717 3.55A.5.5 0 0 1 7 4v8a.5.5 0 0 1-.812.39L3.825 10.5H1.5A.5.5 0 0 1 1 10V6a.5.5 0 0 1 .5-.5h2.325l2.363-1.89a.5.5 0 0 1 .529-.06zm7.137 2.096a.5.5 0 0 1 0 .708L12.207 8l1.647 1.646a.5.5 0 0 1-.708.708L11.5 8.707l-1.646 1.647a.5.5 0 0 1-.708-.708L10.793 8 9.146 6.354a.5.5 0 1 1 .708-.708L11.5 7.293l1.646-1.647a.5.5 0 0 1 .708 0z"/></svg>`;
-        const copyIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path fill-rule="evenodd" d="M4 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V2Zm2-1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H6ZM2 5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1h1v1a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1v1H2Z"/></svg>`;
-        const checkIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z"/></svg>`;
+                if (allVideoUrls.length === 0) {
+                    statusMessage.textContent = 'لم يتم العثور على فيديوهات.';
+                    return;
+                }
+                
+                statusMessage.textContent = `تم العثور على ${allVideoUrls.length} فيديو.`;
+                loadMoreVideos(initialLoadSize);
 
-        // --- دوال مساعدة ---
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
+                if (currentIndex < allVideoUrls.length) {
+                    loadMoreBtn.classList.remove('hidden');
+                }
+            } catch (error) {
+                statusMessage.textContent = `فشل تحميل القائمة. ${error.message}`;
+                statusMessage.classList.add('text-red-500');
+            }
+        }
 
-        function formatTime(seconds) {
-            if (isNaN(seconds)) return '0:00';
-            const flooredSeconds = Math.floor(seconds);
-            const min = Math.floor(flooredSeconds / 60);
-            const sec = flooredSeconds % 60;
-            return `${min}:${sec < 10 ? '0' : ''}${sec}`;
-        }
+        // --- تحميل المزيد من الفيديوهات ---
+        function loadMoreVideos(count) {
+            const batch = allVideoUrls.slice(currentIndex, currentIndex + count);
+            batch.forEach(url => linksGrid.appendChild(createLinkCard(url)));
+            currentIndex += count;
+            if (currentIndex >= allVideoUrls.length) {
+                loadMoreBtn.classList.add('hidden');
+            }
+        }
+        
+        loadMoreBtn.addEventListener('click', () => loadMoreVideos(batchSize));
 
-        // --- جلب البيانات والتهيئة ---
-        async function fetchAndInitialize() {
-            try {
-                const response = await fetch(fileUrl);
-                if (!response.ok) throw new Error(`فشل الاتصال بالشبكة: ${response.status}`);
-                const text = await response.text();
-                const urls = text.split('\n').filter(url => url.trim() !== '' && (url.includes('.mp4') || url.includes('.webm')));
-                
-                allVideoUrls = shuffleArray(urls);
+        // --- إنشاء بطاقة الفيديو ---
+        function createLinkCard(url) {
+            const cardWrapper = document.createElement('div');
+            cardWrapper.className = 'video-card relative rounded-xl overflow-hidden shadow-lg group transition-transform duration-300 ease-in-out';
+            
+            const video = document.createElement('video');
+            const spinnerContainer = document.createElement('div');
+            const staticOverlay = document.createElement('div');
+            const durationBadge = document.createElement('span');
+            const copyButton = document.createElement('button');
+            const hoverOverlay = document.createElement('div');
+            const muteButton = document.createElement('button');
+            const qualityBadge = document.createElement('span');
 
-                if (allVideoUrls.length === 0) {
-                    statusMessage.textContent = 'لم يتم العثور على فيديوهات.';
-                    return;
-                }
-                
-                statusMessage.textContent = `تم العثور على ${allVideoUrls.length} فيديو.`;
-                controlsContainer.classList.remove('hidden'); // إظهار أزرار التحكم
-                loadMoreVideos(initialLoadSize);
+            const randomThumbnailTime = Math.floor(Math.random() * 59) + 1;
+            
+            video.className = 'video-thumbnail transition-opacity duration-500 opacity-0';
+            video.src = `${url}#t=${randomThumbnailTime}`;
+            video.muted = true;
+            video.playsInline = true;
+            video.preload = 'metadata';
+            
+            spinnerContainer.className = 'absolute inset-0 flex items-center justify-center';
+            spinnerContainer.innerHTML = `<div class="spinner"></div>`;
+            
+            staticOverlay.className = 'absolute bottom-2 left-2 z-10 pointer-events-none transition-opacity duration-300 ease-in-out';
+            durationBadge.className = 'text-[11px] font-medium text-white bg-black bg-opacity-70 px-1.5 py-0.5 rounded backdrop-blur-sm';
+            staticOverlay.appendChild(durationBadge);
+            
+            copyButton.className = 'absolute top-2 right-2 z-20 pointer-events-auto text-white p-1.5 rounded-full bg-black bg-opacity-50 hover:bg-opacity-75 transition-all opacity-0 group-hover:opacity-100';
+            copyButton.innerHTML = copyIcon;
+            
+            hoverOverlay.className = 'absolute inset-0 z-10 p-2 flex justify-between items-end pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300';
+            muteButton.className = 'pointer-events-auto text-white p-1.5 rounded-full bg-black bg-opacity-50 hover:bg-opacity-75 transition-all';
+            muteButton.innerHTML = mutedIcon;
+            qualityBadge.className = 'text-xs font-semibold text-white bg-black bg-opacity-60 px-1.5 py-0.5 rounded-md backdrop-blur-sm';
+            hoverOverlay.appendChild(muteButton);
+            hoverOverlay.appendChild(qualityBadge);
 
-                if (currentIndex < allVideoUrls.length) {
-                    loadMoreBtn.classList.remove('hidden');
-                }
-            } catch (error) {
-                statusMessage.textContent = `فشل تحميل القائمة. ${error.message}`;
-                statusMessage.classList.add('text-red-500');
-            }
-        }
+            cardWrapper.append(spinnerContainer, video, staticOverlay, hoverOverlay, copyButton);
 
-        // --- تحميل المزيد من الفيديوهات ---
-        function loadMoreVideos(count) {
-            const batch = allVideoUrls.slice(currentIndex, currentIndex + count);
-            batch.forEach((url, i) => {
-                const card = createLinkCard(url);
-                // تخزين الترتيب الأصلي لفرز "الافتراضي"
-                card.dataset.originalIndex = currentIndex + i;
-                linksGrid.appendChild(card);
-            });
-            currentIndex += count;
-            if (currentIndex >= allVideoUrls.length) {
-                loadMoreBtn.classList.add('hidden');
-            }
-            // أعد الفرز بعد إضافة عناصر جديدة إذا لم يكن الترتيب "افتراضي"
-            if (sortSelect.value !== 'default') {
-                sortAndRedrawGrid();
-            }
-        }
-        
-        loadMoreBtn.addEventListener('click', () => loadMoreVideos(batchSize));
+            let isPlayingFull = false;
+            let playTimeout = null;
 
-        // --- إنشاء بطاقة الفيديو ---
-        function createLinkCard(url) {
-            const cardWrapper = document.createElement('div');
-            cardWrapper.className = 'video-card relative rounded-xl overflow-hidden shadow-lg group transition-transform duration-300 ease-in-out';
-            
-            const video = document.createElement('video');
-            const spinnerContainer = document.createElement('div');
-            const staticTopOverlay = document.createElement('div'); // حاوية للجودة
-            const staticBottomOverlay = document.createElement('div'); // حاوية للمدة
-            const durationBadge = document.createElement('span');
-            const copyButton = document.createElement('button');
-            const hoverOverlay = document.createElement('div');
-            const muteButton = document.createElement('button');
-            const qualityBadge = document.createElement('span'); // شارة الجودة
+            const startPlaybackLoop = () => {
+                if (isPlayingFull || video.readyState < 2) return;
+                staticOverlay.classList.add('opacity-0');
+                if (playTimeout) clearTimeout(playTimeout);
+                const maxStartTime = Math.max(0, video.duration - 10);
+                video.currentTime = Math.random() * maxStartTime;
+                video.play().catch(e => {});
+            };
 
-            const randomThumbnailTime = Math.floor(Math.random() * 59) + 1;
-            
-            video.className = 'video-thumbnail transition-opacity duration-500 opacity-0';
-            video.src = `${url}#t=${randomThumbnailTime}`;
-            video.muted = true;
-            video.playsInline = true;
-            video.preload = 'metadata';
-            
-            spinnerContainer.className = 'absolute inset-0 flex items-center justify-center';
-            spinnerContainer.innerHTML = `<div class="spinner"></div>`;
-            
-            // حاوية أعلى اليسار (للجودة)
-            staticTopOverlay.className = 'absolute top-2 left-2 z-10 pointer-events-none transition-opacity duration-300 ease-in-out';
-            qualityBadge.className = 'text-xs font-semibold text-white bg-black bg-opacity-60 px-1.5 py-0.5 rounded-md backdrop-blur-sm hidden'; // ابدأ مخفياً
-            staticTopOverlay.appendChild(qualityBadge);
+            const stopPlaybackLoop = () => {
+                if (isPlayingFull) return;
+                staticOverlay.classList.remove('opacity-0');
+                if (playTimeout) clearTimeout(playTimeout);
+                video.pause();
+                video.currentTime = randomThumbnailTime;
+                video.muted = true; 
+                muteButton.innerHTML = mutedIcon;
+            };
+            
+            const switchToFullPlayer = () => {
+                if (isPlayingFull) return;
+                isPlayingFull = true;
+                stopPlaybackLoop(); 
+                cardWrapper.removeEventListener('mouseenter', startPlaybackLoop);
+                cardWrapper.removeEventListener('mouseleave', stopPlaybackLoop);
+                cardWrapper.classList.remove('group');
+                cardWrapper.style.transform = 'scale(1.05)';
+                hoverOverlay.style.opacity = '0';
+                copyButton.style.opacity = '0';
+                video.muted = false;
+                video.currentTime = 0;
+                video.setAttribute('controls', 'true');
+                video.style.pointerEvents = 'auto';
+                video.play().catch(e => {});
+            };
 
-            // حاوية أسفل اليسار (للمدة)
-            staticBottomOverlay.className = 'absolute bottom-2 left-2 z-10 pointer-events-none transition-opacity duration-300 ease-in-out';
-            durationBadge.className = 'text-[11px] font-medium text-white bg-black bg-opacity-70 px-1.5 py-0.5 rounded backdrop-blur-sm';
-            staticBottomOverlay.appendChild(durationBadge);
-            
-            copyButton.className = 'absolute top-2 right-2 z-20 pointer-events-auto text-white p-1.5 rounded-full bg-black bg-opacity-50 hover:bg-opacity-75 transition-all opacity-0 group-hover:opacity-100';
-            copyButton.innerHTML = copyIcon;
-            
-            hoverOverlay.className = 'absolute inset-0 z-10 p-2 flex justify-between items-end pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300';
-            muteButton.className = 'pointer-events-auto text-white p-1.5 rounded-full bg-black bg-opacity-50 hover:bg-opacity-75 transition-all';
-            muteButton.innerHTML = mutedIcon;
-            hoverOverlay.appendChild(muteButton);
+            muteButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                video.muted = !video.muted;
+                muteButton.innerHTML = video.muted ? mutedIcon : volumeIcon;
+            });
 
-            cardWrapper.append(spinnerContainer, video, staticTopOverlay, staticBottomOverlay, hoverOverlay, copyButton);
+            copyButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    copyButton.innerHTML = checkIcon;
+                    setTimeout(() => { copyButton.innerHTML = copyIcon; }, 1500);
+                } catch (err) { console.error('Fallback: Oops, unable to copy', err); }
+                document.body.removeChild(textArea);
+            });
 
-            let isPlayingFull = false;
-            let playTimeout = null;
+            cardWrapper.addEventListener('click', (e) => {
+                if (e.target.closest('button') === copyButton || e.target.closest('button') === muteButton) return;
+                switchToFullPlayer();
+            });
 
-            const startPlaybackLoop = () => {
-                if (isPlayingFull || video.readyState < 2) return;
-                staticBottomOverlay.classList.add('opacity-0');
-                if (playTimeout) clearTimeout(playTimeout);
-                const maxStartTime = Math.max(0, video.duration - 10);
-                video.currentTime = Math.random() * maxStartTime;
-                video.play().catch(e => {});
-            };
+            // *** التعامل الذكي مع الخطأ هنا ***
+            video.addEventListener('error', () => {
+                cardWrapper.style.aspectRatio = '16 / 9';
+                spinnerContainer.innerHTML = `<span class="text-xs text-red-400 text-center p-2">فشل التحميل (مشكلة CORS على الأغلب)</span>`;
+            });
 
-            const stopPlaybackLoop = () => {
-                if (isPlayingFull) return;
-                staticBottomOverlay.classList.remove('opacity-0');
-                if (playTimeout) clearTimeout(playTimeout);
-                video.pause();
-                video.currentTime = randomThumbnailTime;
-                video.muted = true; 
-                muteButton.innerHTML = mutedIcon;
-            };
-            
-            const switchToFullPlayer = () => {
-                if (isPlayingFull) return;
-                isPlayingFull = true;
-                stopPlaybackLoop(); 
-                cardWrapper.removeEventListener('mouseenter', startPlaybackLoop);
-                cardWrapper.removeEventListener('mouseleave', stopPlaybackLoop);
-                cardWrapper.classList.remove('group');
-                cardWrapper.style.transform = 'scale(1.05)';
-                
-                // --- التعديل: إخفاء الأيقونات عند التشغيل ---
-                hoverOverlay.style.opacity = '0';
-                copyButton.style.opacity = '0';
-                staticTopOverlay.style.display = 'none'; // إخفاء الجودة
-                staticBottomOverlay.style.display = 'none'; // إخفاء المدة
-                // ------------------------------------------
+            video.addEventListener('loadedmetadata', () => {
+                spinnerContainer.style.display = 'none';
+                video.classList.remove('opacity-0');
+                if (video.videoWidth > 0) {
+                    cardWrapper.style.aspectRatio = video.videoWidth / video.videoHeight;
+                    qualityBadge.textContent = `${video.videoHeight}p`;
+                }
+                durationBadge.textContent = formatTime(video.duration);
+                cardWrapper.addEventListener('mouseenter', startPlaybackLoop);
+                cardWrapper.addEventListener('mouseleave', stopPlaybackLoop);
+            });
 
-                video.muted = false;
-                video.currentTime = 0;
-                video.setAttribute('controls', 'true');
-                video.style.pointerEvents = 'auto';
-                video.play().catch(e => {});
-            };
-
-            muteButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                video.muted = !video.muted;
-                muteButton.innerHTML = video.muted ? mutedIcon : volumeIcon;
-            });
-
-            copyButton.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const textArea = document.createElement('textarea');
-                textArea.value = url;
-                document.body.appendChild(textArea);
-                textArea.select();
-                try {
-                    document.execCommand('copy');
-                    copyButton.innerHTML = checkIcon;
-                    setTimeout(() => { copyButton.innerHTML = copyIcon; }, 1500);
-                } catch (err) { console.error('Fallback: Oops, unable to copy', err); }
-                document.body.removeChild(textArea);
-            });
-
-            cardWrapper.addEventListener('click', (e) => {
-                if (e.target.closest('button') === copyButton || e.target.closest('button') === muteButton) return;
-                switchToFullPlayer();
-            });
-
-            // *** التعامل الذكي مع الخطأ هنا ***
-            video.addEventListener('error', () => {
-                cardWrapper.style.aspectRatio = '16 / 9';
-                spinnerContainer.innerHTML = `<span class="text-xs text-red-400 text-center p-2">فشل التحميل (مشكلة CORS على الأغلب)</span>`;
-            });
-
-            video.addEventListener('loadedmetadata', () => {
-                spinnerContainer.style.display = 'none';
-                video.classList.remove('opacity-0');
-                
-                // تخزين البيانات للفرز
-                cardWrapper.dataset.duration = video.duration;
-                cardWrapper.dataset.height = video.videoHeight;
-                
-                if (video.videoWidth > 0) {
-                    cardWrapper.style.aspectRatio = video.videoWidth / video.videoHeight;
-                    qualityBadge.textContent = `${video.videoHeight}p`;
-                    qualityBadge.classList.remove('hidden'); // إظهار الجودة
-                }
-                durationBadge.textContent = formatTime(video.duration);
-                cardWrapper.addEventListener('mouseenter', startPlaybackLoop);
-                cardWrapper.addEventListener('mouseleave', stopPlaybackLoop);
-            });
-
-            return cardWrapper;
-        }
-
-        // --- وظائف الفرز والخلط ---
-
-        function sortAndRedrawGrid() {
-            const sortBy = sortSelect.value;
-            const cards = Array.from(linksGrid.children);
-
-            cards.sort((a, b) => {
-                // تحويل قيم data-set إلى أرقام
-                const aDuration = parseFloat(a.dataset.duration || 0);
-                const bDuration = parseFloat(b.dataset.duration || 0);
-                const aHeight = parseInt(a.dataset.height || 0, 10);
-                const bHeight = parseInt(b.dataset.height || 0, 10);
-                const aIndex = parseInt(a.dataset.originalIndex || 0, 10);
-                const bIndex = parseInt(b.dataset.originalIndex || 0, 10);
-
-                switch (sortBy) {
-                    case 'duration-desc':
-                        return bDuration - aDuration;
-                    case 'duration-asc':
-                        return aDuration - bDuration;
-                    case 'quality-desc':
-                        return bHeight - aHeight;
-                    case 'quality-asc':
-                        return aHeight - bHeight;
-                    case 'default':
-                    default:
-                        return aIndex - bIndex; // الفرز حسب الترتيب الأصلي
-                }
-            });
-
-            // إعادة بناء الشبكة بالترتيب الجديد
-            cards.forEach(card => linksGrid.appendChild(card));
-        }
-
-        function shuffleAndRedraw() {
-            allVideoUrls = shuffleArray(allVideoUrls);
-            linksGrid.innerHTML = '';
-            currentIndex = 0;
-            sortSelect.value = 'default'; // إعادة الفرز للافتراضي
-            loadMoreVideos(initialLoadSize);
-            // إظهار/إخفاء زر "تحميل المزيد"
-            if (currentIndex < allVideoUrls.length) {
-                loadMoreBtn.classList.remove('hidden');
-            } else {
-                loadMoreBtn.classList.add('hidden');
-            }
-        }
-
-        // ربط الأحداث
-        sortSelect.addEventListener('change', sortAndRedrawGrid);
-        shuffleBtn.addEventListener('click', shuffleAndRedraw);
-        
-        fetchAndInitialize();
-    });
-    </script>
+            return cardWrapper;
+        }
+        
+        fetchAndInitialize();
+    });
+    </script>
 </body>
 </html>

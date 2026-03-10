@@ -1,295 +1,537 @@
 <!DOCTYPE html>
+
 <html lang="ar" dir="rtl">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>معرض فيديوهات ذكي | واجهة أيقونية</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
+
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+
     <style>
+
         :root {
+
             --bg-dark: #050505;
+
             --card-bg: #111111;
+
         }
+
         body {
+
             font-family: 'Cairo', sans-serif;
+
             background-color: var(--bg-dark);
+
             color: #ffffff;
+
         }
+
         .video-card {
+
             break-inside: avoid;
+
             background-color: var(--card-bg);
+
             border: 1px solid #222;
+
             transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+
         }
+
         .video-card:hover {
+
             border-color: #444;
+
             transform: scale(1.01);
+
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+
         }
+
         .video-container {
+
             position: relative;
+
             width: 100%;
+
             aspect-ratio: 16 / 9;
+
             background: #000;
+
             overflow: hidden;
+
             border-radius: 12px;
+
         }
+
         video {
+
             width: 100%;
+
             height: 100%;
+
             object-fit: cover;
+
             display: block;
+
         }
+
         video:not([controls]) {
+
             pointer-events: none;
+
         }
+
         .loading-skeleton {
+
             background: linear-gradient(90deg, #111 25%, #1a1a1a 50%, #111 75%);
+
             background-size: 200% 100%;
+
             animation: skeleton-wave 1.5s infinite;
+
         }
+
         @keyframes skeleton-wave {
+
             0% { background-position: 200% 0; }
+
             100% { background-position: -200% 0; }
+
         }
+
         .search-input {
+
             background: #111;
+
             border: 1px solid #333;
+
             transition: all 0.3s;
+
         }
+
         .search-input:focus {
+
             border-color: #eee;
+
             box-shadow: 0 0 0 1px #eee;
+
             outline: none;
+
         }
+
         .icon-btn {
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
+
             width: 32px;
+
             height: 32px;
+
             border-radius: 8px;
+
             background: rgba(255, 255, 255, 0.05);
+
             transition: all 0.2s;
+
             color: #a1a1aa;
+
         }
+
         .icon-btn:hover {
+
             background: rgba(255, 255, 255, 0.15);
+
             color: #ffffff;
+
         }
+
     </style>
+
 </head>
+
 <body class="antialiased">
 
+
+
     <main class="min-h-screen p-4 md:p-8 max-w-[1600px] mx-auto">
-        <!-- Header (Title removed as requested) -->
+
         <header class="mb-10 text-center">
+
             <div class="relative max-w-2xl mx-auto mb-4">
+
                 <input type="text" id="search-input" placeholder="ابحث في الفيديوهات..." 
+
                        class="search-input w-full py-4 px-6 pr-12 rounded-2xl text-white">
+
                 <div class="absolute inset-y-0 right-4 flex items-center text-zinc-500">
+
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+
                     </svg>
+
                 </div>
+
             </div>
+
             <p id="status-message" class="text-zinc-500 text-[10px] uppercase tracking-widest">جاري التحميل...</p>
+
         </header>
 
-        <!-- Gallery Grid -->
-        <div id="links-grid" class="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-6">
-            <!-- البطاقات سيتم حقنها هنا -->
+
+
+        <div id="links-grid" class="columns-1 sm:columns-2 lg:columns-3 xl:columns-4 2xl:columns-5 gap-6"></div>
+
+
+
+        <div id="pagination" class="text-center mt-12 hidden">
+
+            <button id="load-more-btn" class="bg-white text-black px-12 py-4 rounded-2xl font-bold hover:bg-zinc-200 transition-transform active:scale-95">
+
+                عرض المزيد
+
+            </button>
+
         </div>
 
-        <!-- Pagination -->
-        <div id="pagination" class="text-center mt-12 hidden">
-            <button id="load-more-btn" class="bg-white text-black px-12 py-4 rounded-2xl font-bold hover:bg-zinc-200 transition-transform active:scale-95">
-                عرض المزيد
-            </button>
-        </div>
     </main>
 
-    <!-- CORS Error Modal -->
+
+
     <div id="error-modal" class="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+
         <div class="bg-zinc-900 p-8 rounded-3xl max-w-sm w-full text-center border border-zinc-800">
+
             <h3 class="text-xl font-bold mb-4 text-red-500">تنبيه</h3>
+
             <p class="text-zinc-400 text-sm mb-6">هذا الفيديو لا يدعم التشغيل المباشر بسبب قيود الخصوصية. يرجى فتحه في صفحة جديدة.</p>
+
             <a id="modal-link" href="#" target="_blank" class="block w-full bg-white text-black py-4 rounded-xl font-bold mb-2">فتح المصدر</a>
+
             <button onclick="closeModal()" class="text-zinc-500 text-xs mt-2 hover:text-white">إغلاق</button>
+
         </div>
+
     </div>
 
+
+
     <script>
+
     document.addEventListener('DOMContentLoaded', () => {
+
         const linksGrid = document.getElementById('links-grid');
+
         const statusMessage = document.getElementById('status-message');
+
         const loadMoreBtn = document.getElementById('load-more-btn');
+
         const pagination = document.getElementById('pagination');
+
         const searchInput = document.getElementById('search-input');
+
         const errorModal = document.getElementById('error-modal');
+
         const modalLink = document.getElementById('modal-link');
 
+
+
         let allLinks = [];
+
         let filteredLinks = [];
+
         let currentIndex = 0;
+
         const perPage = 15;
+
         const sourceUrl = 'https://raw.githubusercontent.com/Aminoxdag/My-links/refs/heads/main/cytube_links.txt';
 
-        // SVGs for Icons
+
+
         const iconCopy = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>`;
+
         const iconExternal = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>`;
 
+        const iconPlayCircle = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>`;
+
+
+
         const io = new IntersectionObserver((entries) => {
+
             entries.forEach(e => {
+
                 if (e.isIntersecting) {
+
                     const card = e.target;
+
                     const video = card.querySelector('video');
+
                     const src = video.dataset.src;
+
                     const randomTime = Math.floor(Math.random() * 60) + 60;
-                    
+
                     video.src = `${src}#t=${randomTime}`;
+
                     video.load();
-                    
+
                     video.addEventListener('loadeddata', () => {
+
                         card.querySelector('.loading-skeleton').classList.add('hidden');
+
                         video.classList.remove('opacity-0');
+
                     }, { once: true });
 
                     io.unobserve(card);
+
                 }
+
             });
+
         }, { rootMargin: '400px' });
 
+
+
         async function startApp() {
+
             try {
+
                 const r = await fetch(sourceUrl);
+
                 const txt = await r.text();
+
                 allLinks = txt.split('\n').map(l => l.trim()).filter(l => l.includes('.'));
+
                 filteredLinks = [...allLinks].sort(() => Math.random() - 0.5);
+
                 statusMessage.textContent = `متصل | ${allLinks.length} فيديو`;
+
                 showNext();
+
                 pagination.classList.remove('hidden');
+
             } catch (e) {
+
                 statusMessage.textContent = "خطأ في تحميل المصدر";
+
             }
+
         }
+
+
 
         function showNext() {
+
             const batch = filteredLinks.slice(currentIndex, currentIndex + perPage);
+
             batch.forEach(url => {
+
                 const card = createCard(url);
+
                 linksGrid.appendChild(card);
+
                 io.observe(card);
+
             });
+
             currentIndex += perPage;
+
             if (currentIndex >= filteredLinks.length) pagination.classList.add('hidden');
+
         }
+
+
 
         function createCard(url) {
+
             const card = document.createElement('div');
+
             card.className = 'video-card relative rounded-2xl overflow-hidden mb-6 cursor-pointer';
+
             
+
             card.innerHTML = `
+
                 <div class="video-container">
+
                     <div class="loading-skeleton absolute inset-0 z-0"></div>
+
                     <video class="opacity-0 transition-opacity duration-700" preload="metadata" muted playsinline></video>
+
                 </div>
+
                 <div class="p-3 bg-zinc-900/40">
+
                     <div class="flex justify-between items-center">
-                        <span class="text-[9px] text-zinc-500 truncate max-w-[130px] font-mono">${url.split('/').pop()}</span>
+
+                        <span class="text-[9px] text-zinc-500 truncate max-w-[120px] font-mono">${url.split('/').pop()}</span>
+
                         <div class="flex gap-2">
+
+                             <button title="تشغيل في المشغل" class="play-btn icon-btn text-blue-400 hover:text-blue-300 hover:bg-blue-500/10">${iconPlayCircle}</button>
+
                             <button title="فتح في صفحة جديدة" class="open-btn icon-btn">${iconExternal}</button>
+
                             <button title="نسخ الرابط" class="copy-btn icon-btn">${iconCopy}</button>
+
                         </div>
+
                     </div>
+
                 </div>
+
             `;
 
+
+
             const video = card.querySelector('video');
+
             video.dataset.src = url;
+
             let isFullView = false;
 
+
+
             const handlePlay = () => {
+
                 if (isFullView) return;
+
                 isFullView = true;
+
                 video.currentTime = 0;
+
                 video.muted = false;
+
                 video.setAttribute('controls', 'true');
-                
-                const playPromise = video.play();
-                if (playPromise !== undefined) {
-                    playPromise.catch(err => {
-                        if (video.error) openModal(url);
-                    });
-                }
+
+                video.play().catch(err => { if (video.error) openModal(url); });
+
             };
 
+
+
             card.addEventListener('click', (e) => {
+
                 const btn = e.target.closest('button');
+
                 
-                if(btn && btn.classList.contains('copy-btn')) {
-                    const textArea = document.createElement('textarea');
-                    textArea.value = url;
-                    document.body.appendChild(textArea);
-                    textArea.select();
-                    try {
-                        document.execCommand('copy');
-                        btn.style.color = '#22c55e'; // Green
-                    } catch (err) { console.error(err); }
-                    document.body.removeChild(textArea);
-                    
-                    setTimeout(() => { btn.style.color = ''; }, 2000);
+
+                if(btn && btn.classList.contains('play-btn')) {
+
+                    // استخدام الـ HASH لإرسال الرابط
+
+                    const playerBaseUrl = 'https://aminoxdag.github.io/player/';
+
+                    window.open(`${playerBaseUrl}#${encodeURIComponent(url)}`, '_blank');
+
                     return;
+
                 }
+
+
+
+                if(btn && btn.classList.contains('copy-btn')) {
+
+                    const textArea = document.createElement('textarea');
+
+                    textArea.value = url;
+
+                    document.body.appendChild(textArea);
+
+                    textArea.select();
+
+                    document.execCommand('copy');
+
+                    btn.style.color = '#22c55e';
+
+                    document.body.removeChild(textArea);
+
+                    setTimeout(() => { btn.style.color = ''; }, 2000);
+
+                    return;
+
+                }
+
+
 
                 if(btn && btn.classList.contains('open-btn')) {
+
                     window.open(url, '_blank');
+
                     return;
+
                 }
+
+
 
                 handlePlay();
+
             });
 
-            card.addEventListener('mouseenter', () => {
-                if (!isFullView && video.readyState >= 2) {
-                    video.play().catch(() => {});
-                }
-            });
 
-            card.addEventListener('mouseleave', () => {
-                if (!isFullView) {
-                    video.pause();
-                }
-            });
+
+            card.addEventListener('mouseenter', () => { if (!isFullView && video.readyState >= 2) video.play().catch(() => {}); });
+
+            card.addEventListener('mouseleave', () => { if (!isFullView) video.pause(); });
+
+
 
             return card;
+
         }
 
-        let searchDebounce;
+
+
         searchInput.addEventListener('input', (e) => {
-            clearTimeout(searchDebounce);
-            searchDebounce = setTimeout(() => {
-                const t = e.target.value.toLowerCase();
-                filteredLinks = allLinks.filter(l => l.toLowerCase().includes(t));
-                currentIndex = 0;
-                linksGrid.innerHTML = '';
-                showNext();
-                statusMessage.textContent = `نتائج البحث: ${filteredLinks.length}`;
-            }, 300);
+
+            const t = e.target.value.toLowerCase();
+
+            filteredLinks = allLinks.filter(l => l.toLowerCase().includes(t));
+
+            currentIndex = 0;
+
+            linksGrid.innerHTML = '';
+
+            showNext();
+
+            statusMessage.textContent = `نتائج البحث: ${filteredLinks.length}`;
+
         });
 
+
+
         loadMoreBtn.addEventListener('click', showNext);
+
         window.closeModal = () => errorModal.classList.add('hidden');
-        window.openModal = (u) => {
-            modalLink.href = u;
-            errorModal.classList.remove('hidden');
-        };
+
+        window.openModal = (u) => { modalLink.href = u; errorModal.classList.remove('hidden'); };
+
+
 
         startApp();
+
     });
+
     </script>
+
 </body>
+
 </html>
